@@ -19,7 +19,6 @@ ENV/
 
 .ipynb_checkpoints
 
-
 .cache/
 .pytest_cache/
 
@@ -27,9 +26,12 @@ ENV/
 
 .vscode/
 
-
-*.env
-.env.*
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+!.env.example
 
 
 *.sqlite3
