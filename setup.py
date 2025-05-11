@@ -33,7 +33,7 @@ setup(
         'jieba',
         'numpy',
         'tqdm',
-        'openai',
+        'openai==1.76.2',
         'python-dotenv',
         'tenacity',
         'aiohttp',
@@ -49,6 +49,7 @@ setup(
     entry_points={
         'console_scripts': [
             'build-policy=libs.data_generator.policy:main',
+            'build-train-data=libs.data_generator.train_data:main'
         ],
     },
 )
