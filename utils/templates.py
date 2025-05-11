@@ -1,6 +1,27 @@
+"""
+LiteDetective - Malicious Content Detection Pipeline
+
+Copyright (c) 2025 Albert Zhao
+Author: Albert Zhao Zhaoq@kean.edu Hu
+Created: 2025-05-11
+Updated: 2025-05-11
+
+Description:
+    Templates for data generation and processing.
+
+License: MIT License
+"""
+
 def build_tieba_summary_prompt(tiezi: str) -> str:
-    prompt = (f"""\
-你是一个帖子评审系统，你的任务是根据给定的评论区生成一套标准，用来挑选有害评论，并根据这些标准总结评论内容。
+    """Build prompt for summarizing tieba posts.
+    
+    Args:
+        tiezi (str): The tieba post.
+        
+    Returns:
+        str: The formatted prompt.
+    """
+    return f"""你是一个帖子评审系统，你的任务是根据给定的评论区生成一套标准，用来挑选有害评论，并根据这些标准总结评论内容。
 根据以下评论区内容，请总结出挑选有害评论的标准，包含哪些类型的评论应该被认为是有害的。例如，挑选标准可以包括：讽刺、侮辱、误导信息、恶意引导、负面情绪等。你需要给出每个标准的具体定义，并提供一到两个例子来展示如何判定有害内容。
 
 帖子结构为:
@@ -24,18 +45,24 @@ def build_tieba_summary_prompt(tiezi: str) -> str:
     ]
 }}
 请只输出json格式的结果，包含每个标准的类型、定义和示例。请确保输出的JSON格式正确，不要进行解释，不要输出'''json'''。
-""")
-    return prompt
+"""
 
 def build_training_data_prompt(summary: str, policy: list) -> str:
+    """Build prompt for generating training data.
     
+    Args:
+        summary (str): Summary of the content.
+        policy (list): List of policy definitions.
+        
+    Returns:
+        str: The formatted prompt.
+    """
     policy_text = "\n".join(
         f"类型: {p['type']}, 定义: {p['definition']}, 示例: {p['examples']}"
         for p in policy
     )
 
-    prompt = f"""\
-你是一个文本分类模型的训练数据生成器。根据以下有害文本的类型定义生成训练数据：
+    return f"""你是一个文本分类模型的训练数据生成器。根据以下有害文本的类型定义生成训练数据：
 总结: {summary}
 
 有害文本: {policy_text}
@@ -57,4 +84,72 @@ def build_training_data_prompt(summary: str, policy: list) -> str:
 
 请确保输出的JSON数组格式正确，不要进行解释，不要输出'''json'''。
 """
-    return prompt
+
+def build_data_augmentation_prompt(text: str) -> str:
+    """Build prompt for data augmentation.
+    
+    Args:
+        text (str): The input text to augment.
+        
+    Returns:
+        str: The formatted prompt.
+    """
+    return f"""你是一个用于构建有害内容识别数据集的文本生成器。
+
+请根据用户的发言（text），构造出相关的对话背景（context，即其他人的发言），并以合法 JSON 格式输出。
+
+任务目标是模拟出用户的 text 出现在某个对话背景中，并判断该 text 在该 context 下，是否构成有害内容（label）。
+
+【重要说明】：
+- 判断对象始终是 text；
+- 需要结合 context 语境来判断 text 是否构成有害言论；
+- 不是单独判断 text，也不是把 context + text 当作一个整体来判断；
+- 要判断的是：**在该 context 背景下，text 是否构成攻击性、冒犯、歧视、误导、煽动、欺诈等倾向**。
+
+label 含义说明：
+- label = 1 表示：在给定 context 中，text 构成有害言论；
+- label = 0 表示：在给定 context 中，text 属于中立、理性或健康讨论；
+
+其他要求：
+1. context 至少包含 2 条发言，能自然引出 text；
+2. 若 text 无法支持给定 label，请合理切换 label 并重新构造 context；
+3. 输出必须为合法 JSON，结构如下：
+   {{
+     "text": "...",
+     "label": 0 or 1,
+     "context": ["...", "...", "..."]
+   }}
+
+示例：
+
+1. 输入：
+   text: "你脑子有问题吧？这种破事也拿出来说！"
+   输出：
+   {{
+     "text": "你脑子有问题吧？这种破事也拿出来说！",
+     "label": 1,
+     "context": [
+       "我只是分享了一下我今天遇到的麻烦事。",
+       "每个人都有情绪，不应该被这样对待。",
+       "他可能只是想找人倾诉一下。"
+     ]
+   }}
+
+2. 输入：
+   text: "我觉得这个提案蛮不错的，值得尝试。"
+   输出：
+   {{
+     "text": "我觉得这个提案蛮不错的，值得尝试。",
+     "label": 0,
+     "context": [
+       "我们目前在讨论是否使用新的策略。",
+       "这个提案有点冒险，不过也可能带来新机会。",
+       "大家觉得这个方案如何？"
+     ]
+   }}
+
+输入：
+text: "{text}"
+
+请输出构造的 context，以 JSON 格式返回，不要输出其他内容，也不要加代码标记。
+"""
