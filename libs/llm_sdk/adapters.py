@@ -1,5 +1,5 @@
 import os
-import openai
+from openai import OpenAI
 from pathlib import Path
 from dotenv import load_dotenv
 from .base import LLMAdapter
@@ -10,9 +10,9 @@ load_dotenv(override=True)
 class OpenAIAdapter(LLMAdapter):
     def __init__(self, base_url: str, model: str ):
         self.model = model
-        self.client = openai.OpenAI(
+        self.client = OpenAI(
             api_key=os.getenv("LLM_API_KEY"),
-            base_url=base_url
+            base_url=os.getenv("LLM_BASE_URL",base_url)
         )
 
     def upload_file(self, file_path: str) -> str:
@@ -61,7 +61,7 @@ class OpenAIAdapter(LLMAdapter):
             str: The response from the LLM.
         """        
         response = self.client.chat.completions.create(
-            model=self.model,
+            model=os.getenv("AGENT_MODEL_PATH",self.model),
             messages=messages,
             **kwargs 
         )
@@ -77,7 +77,7 @@ class OpenAIAdapter(LLMAdapter):
             str: The response from the LLM. 
         """
         response = self.client.chat.completions.create(
-        model=self.model,
+        model=os.getenv("AGENT_MODEL_PATH",self.model),
         messages=messages,
         **kwargs 
         )
@@ -85,10 +85,8 @@ class OpenAIAdapter(LLMAdapter):
             return [choice.message.content for choice in response.choices]
         return response.choices[0].message.content
         
-
-
-
 class GoogleAdapter(LLMAdapter):
+    """Not implemented yet, you can try yourself"""
     def __init__(self):
         raise NotImplementedError("Google Gemini API not yet implemented.")
 
