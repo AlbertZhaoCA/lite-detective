@@ -1,6 +1,21 @@
-from .types import ModelType
+from .types import ModelType, ModelType
 
 class LLM:
+     def __init__(
+        self,
+        model: str = "deepseek-v3",
+        type: ModelType = "local",
+        **kwargs
+    ) -> None:
+        """
+        Initialize the LLM object.
+        Args:
+            model(str): The model to use.
+            type(remote | local: The type of the model).
+            **kwargs: Additional arguments for the model.
+        """
+        pass # for type hinting
+     
      def __new__(cls, model: str = "deepseek-v3", type: ModelType = "local", **kwargs):
         if type == "local":
             from .local_llm import LLM as LocalLLM
