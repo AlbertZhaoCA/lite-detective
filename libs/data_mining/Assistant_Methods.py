@@ -1,5 +1,7 @@
 import random
 import asyncio
+import re
+
 from sympy.codegen.ast import continue_
 
 
@@ -10,7 +12,21 @@ def read_urls_from_file(file_path):
         urls = [line.strip() for line in file if line.strip()]
     return urls
 
-# 模仿人类移动网页，以加载动态网页同时防止被检测到爬虫
+# 贴吧: 爬取的数据预处理
+# 1.判断输入文本是否在水经验 2.剔除无文字内容，仅有需展开图片的 (附：无文字但图片无需展开的在主程序if main_comment处已经剔除了) 3. 剔除评论和回复为非文本类型的，其识别为''的
+    # 水经验: 返回match对象， 不水经验: 返回None
+def pre_process_data(input_text, enable=True):
+    if enable:
+        # pattern正则表达式
+            # 包含类似格式的正则表达式 ["3", "33", "333", "经验加3", "+3", "加3", "加三"]等
+            # 包含无文字内容，仅有需展开图片的，此时文字为'点击展开，查看完整图片'
+            # 图片富文本等，使得内容为''的回复
+        pattern = r"^\s*(经验)?\s*(加|\+)?\s*(3+|三+)\s*(经验)?\s*$|^(点击展开，查看完整图片)$|^$"
+        judge = re.search(pattern, input_text) # 若满足水经验正则表达式，则返回一个match对象
+        return judge #
+    return None
+
+# 贴吧动态加载: 模仿人类移动网页，以加载动态网页同时防止被检测到爬虫
     # 附: 直接瞬移到底下，无法完成动态加载await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
 async def human_like_scroll(page):
     current_y = 0
@@ -111,4 +127,4 @@ async def scroll_based_comments(page, max_answer_num):
 #             await auto_login(page, url)
 #
 # if __name__ == "__main__":
-#     asyncio.run(main())
+#   asyncio.run(main())

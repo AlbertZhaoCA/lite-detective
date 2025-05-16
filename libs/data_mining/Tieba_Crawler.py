@@ -4,13 +4,13 @@ import random
 import re
 import pandas as pd
 from playwright.async_api import async_playwright
-from sqlalchemy.sql.operators import all_op
 
+from Assistant_Methods import pre_process_data
 from Assistant_Methods import read_urls_from_file
 from Assistant_Methods import human_like_scroll
 from Assistant_Methods import auto_login
 
-async def scrape_tieba_comments(url_list, max_pages_per_post):
+async def scrape_tieba_comments(url_list, max_pages_per_post, pre_process=True):
     comments_data = []
 
     async with async_playwright() as p:
@@ -79,6 +79,8 @@ async def scrape_tieba_comments(url_list, max_pages_per_post):
                         # 获取层主评论
                         comment = comment_reply.locator("div.d_post_content").first  # comment尽管只有一个，但.all()输出的是一个数组，数组是没有.inner_text()方法的。只需第一个.first (属性非方法)
                         main_comment = (await comment.inner_text()).strip()
+                        if pre_process_data(main_comment, enable=pre_process): # 若不水经验则输出None，则不会continue, 进而继续执行以下部分
+                            continue
 
                         # 获取层数信息
                         floor_num = None
@@ -94,6 +96,8 @@ async def scrape_tieba_comments(url_list, max_pages_per_post):
                         if replys:
                             for reply in replys:
                                 rep = (await reply.inner_text()).strip()
+                                if pre_process_data(rep, enable=pre_process):  # 判断是否水经验
+                                    continue
                                 reply_comments.append(rep)
 
                         # 整合以上信息
@@ -135,4 +139,4 @@ async def scrape_tieba_comments(url_list, max_pages_per_post):
 if __name__ == "__main__":
     file_path = r"D:\pycharm_code\pythonProject\Web_Crawler\websites.txt"
     urls = read_urls_from_file(file_path)
-    asyncio.run(scrape_tieba_comments(url_list=urls, max_pages_per_post=2))
+    asyncio.run(scrape_tieba_comments(url_list=urls, max_pages_per_post=1, pre_process=True))

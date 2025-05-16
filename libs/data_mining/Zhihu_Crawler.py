@@ -17,8 +17,8 @@ async def scrape_zhihu_comments(url_list, max_answers_num):
 
     async with async_playwright() as p:
         # 爬虫设置
-        type = input("使用新的google浏览器 请输入1 | Using new google browser, enter 1\n" "使用本地google浏览器 请输入2 | Using local google browser, enter 2\n")
-        if type == "1":
+        type = input("使用新的google浏览器 请输入1 | Using new google browser, enter coldet_baseline\n" "使用本地google浏览器 请输入2 | Using local google browser, enter 2\n")
+        if type == "coldet_baseline":
             browser = await p.chromium.launch(headless=False, # 可设为 False 调试
             args = ["--disable-blink-features=AutomationControlled"], # 隐藏webdriver特征
             ignore_default_args=["--enable-automation"]
@@ -208,7 +208,7 @@ async def scrape_zhihu_comments(url_list, max_answers_num):
         # 随机等待降低风险 在爬不同帖子间
         await asyncio.sleep(random.uniform(2,4))
 
-        close = input("任务已结束，关闭浏览器请输入1 | Enter 1 to close browser\n")
+        close = input("任务已结束，关闭浏览器请输入1 | Enter coldet_baseline to close browser\n")
         if close == 1:
             await context.close()
 
