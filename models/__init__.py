@@ -7,7 +7,7 @@ Created: 2025-05-11
 Updated: 2025-05-11
 
 Description:
-    Core library package for LiteDetective.
+    Package containing model implementations.
 
 License: MIT License
 """ 

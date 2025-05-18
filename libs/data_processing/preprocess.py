@@ -21,7 +21,7 @@ if __name__ == "__main__":
     from ..llm_sdk.local_llm import LLM
     import os
     import json
-    from utils.data_processing import remove_json_decorators
+    from utils.data_processing import remove_decorators_and_tags
     from utils.templates import build_tieba_summary_prompt
     csv_file = 'data/raw/(10 封私信 _ 83 条消息) 为什么户晨风会如此狂烈地支持私有制医疗？ - 知乎.csv'
     data = preprocess_csv(csv_file)
@@ -30,7 +30,7 @@ if __name__ == "__main__":
     llm = LLM(os.getenv("AGENT_MODEL_PATH"))
     res = llm.generate(build_tieba_summary_prompt(processed_data))
     print("before",res)
-    res = remove_json_decorators(res)
+    res = remove_decorators_and_tags(res)
     print("after",res)
 
     with open('data/policy.json', 'w', encoding='utf-8') as f:

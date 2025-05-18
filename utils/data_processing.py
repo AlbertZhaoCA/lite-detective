@@ -2,6 +2,7 @@ import csv
 import json
 import os
 from typing import List
+import re
 
 def clean_data_bom(data:str):
     """
@@ -29,22 +30,26 @@ def clean_data(data:str):
     
     return data.strip()
 
-def remove_json_decorators(data: str) -> str:
+def remove_decorators_and_tags(data: str) -> str:
     """
-    Remove JSON decorators from a string, including '''json and ''' marks.
-    
+    Remove JSON decorators (e.g., '''json, ''') and <think>...</think> blocks from the string.
+
     Args:
-        data (str): The input string containing JSON decorators.
-        
+        data (str): The input string containing decorators and tags.
+
     Returns:
-        str: The cleaned string without JSON decorators.
+        str: The cleaned string with <think> blocks removed and JSON decorators stripped.
     """
-    if data.startswith("'''json"):
-        data = data[len("'''json"):].strip()  # Remove leading '''json
-    if data.endswith("'''"):
-        data = data[:-3].strip()  # Remove trailing '''
+    # Remove all <think>...</think> blocks, including across multiple lines
+    data = re.sub(r"<think>.*?</think>", "", data, flags=re.DOTALL | re.IGNORECASE)
     
-    return data
+    # Remove '''json at the beginning (case-insensitive), allowing optional whitespace
+    data = re.sub(r"^'''json\s*", "", data, flags=re.IGNORECASE)
+    
+    # Remove ending triple single quotes if present
+    data = re.sub(r"'''$", "", data).strip()
+    
+    return data.strip()
 
 def get_all_files(dir_path: str, file_extension: str="json") -> List[str]:
     """
@@ -119,12 +124,27 @@ def read_json_from_file(file_path):
         journal = json.load(journal_file)
     return journal
 
+def read_jsonl(file_path):
+    """
+    Read a jsonl file and return a list of json objects.
+    """
+    data = []
+    with open(file_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            try:
+                json_obj = json.loads(line.strip())
+                data.append(json_obj)
+            except json.JSONDecodeError:
+                continue
+    return data
+
+
 
 
 if __name__ == "__main__":
     # Example usage
     data = "'''json\n{\"key\": \"value\"}'''"
-    cleaned_data = remove_json_decorators(data)
+    cleaned_data = remove_decorators_and_tags(data)
     print(cleaned_data)  # Output: {"key": "value"}
     
     data_with_bom = "\ufeffHello, World!"

@@ -7,6 +7,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 from libs.llm_sdk.llm import LLM
 from utils.templates import build_training_data_prompt
+from utils.data_processing import remove_decorators_and_tags
+from utils.types import TrainingDataItem
 
 def getArgs():
     parser = argparse.ArgumentParser(description='Generate training data for the model.')
@@ -30,11 +32,17 @@ def load_policies(file_path="data/policy.jsonl"):
     return data
 
 def generate_one(policy: dict, llm_path: str, llm_type: str) -> dict | None:
+    """generate one training data item group from a policy
+    DO NOT USE LOCAL LLM FOR THIS FUNCTION UNTIL WE IMPLMENT A BETTER APPROACH
+    """
     llm = LLM(os.getenv("AGENT_MODEL_PATH", llm_path), type=llm_type)
     try:
         res = llm.generate(build_training_data_prompt(policy['summary'], policy['policy']))
-        return {"input": policy, "output": res}
+        res = remove_decorators_and_tags(res)
+        res = json.loads(res)
+        return res
     except Exception as e:
+        print(res)
         print(f"[Error] {e}")
         return None
     finally:
@@ -59,8 +67,13 @@ def main():
             result = future.result()
             if result:
                 with output_lock:
-                    json.dump(result, fout, ensure_ascii=False)
-                    fout.write('\n')
+                    for item in result:
+                        try:
+                            item = TrainingDataItem(**item).model_dump()
+                            json.dump(item, fout, ensure_ascii=False)
+                            fout.write('\n')
+                        except Exception as e:
+                            print(f"[Error] {e}")
             bar.update(1)
 
     print("All samples generated and saved.")
