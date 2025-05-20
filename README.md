@@ -172,5 +172,7 @@ You can try the official online demo here:
    - Translation: You're great - 55.82% (Positive)<br>
    - Correctly identified as expressing positive sentiment, although the confidence level is relatively low.</p>
 <img src="assets/demo1.jpg" alt="在线推理演示 Demo" width="600"/>
+<img src="assets/demo3.jpg" alt="在线推理演示 Demo" width="600"/>
+
 </div>
 
